@@ -1,0 +1,204 @@
+---
+name: EduPredict AI
+colors:
+  surface: '#faf8ff'
+  surface-dim: '#d2d9f4'
+  surface-bright: '#faf8ff'
+  surface-container-lowest: '#ffffff'
+  surface-container-low: '#f2f3ff'
+  surface-container: '#eaedff'
+  surface-container-high: '#e2e7ff'
+  surface-container-highest: '#dae2fd'
+  on-surface: '#131b2e'
+  on-surface-variant: '#434655'
+  inverse-surface: '#283044'
+  inverse-on-surface: '#eef0ff'
+  outline: '#737686'
+  outline-variant: '#c3c6d7'
+  surface-tint: '#0053db'
+  primary: '#004ac6'
+  on-primary: '#ffffff'
+  primary-container: '#2563eb'
+  on-primary-container: '#eeefff'
+  inverse-primary: '#b4c5ff'
+  secondary: '#6b38d4'
+  on-secondary: '#ffffff'
+  secondary-container: '#8455ef'
+  on-secondary-container: '#fffbff'
+  tertiary: '#005b7c'
+  on-tertiary: '#ffffff'
+  tertiary-container: '#00759f'
+  on-tertiary-container: '#e1f2ff'
+  error: '#ba1a1a'
+  on-error: '#ffffff'
+  error-container: '#ffdad6'
+  on-error-container: '#93000a'
+  primary-fixed: '#dbe1ff'
+  primary-fixed-dim: '#b4c5ff'
+  on-primary-fixed: '#00174b'
+  on-primary-fixed-variant: '#003ea8'
+  secondary-fixed: '#e9ddff'
+  secondary-fixed-dim: '#d0bcff'
+  on-secondary-fixed: '#23005c'
+  on-secondary-fixed-variant: '#5516be'
+  tertiary-fixed: '#c4e7ff'
+  tertiary-fixed-dim: '#7bd0ff'
+  on-tertiary-fixed: '#001e2c'
+  on-tertiary-fixed-variant: '#004c69'
+  background: '#faf8ff'
+  on-background: '#131b2e'
+  surface-variant: '#dae2fd'
+typography:
+  display:
+    fontFamily: Plus Jakarta Sans
+    fontSize: 40px
+    fontWeight: '700'
+    lineHeight: 48px
+  display-mobile:
+    fontFamily: Plus Jakarta Sans
+    fontSize: 30px
+    fontWeight: '700'
+    lineHeight: 38px
+  headline-lg:
+    fontFamily: Plus Jakarta Sans
+    fontSize: 28px
+    fontWeight: '700'
+    lineHeight: 36px
+  headline-lg-mobile:
+    fontFamily: Plus Jakarta Sans
+    fontSize: 22px
+    fontWeight: '700'
+    lineHeight: 28px
+  headline-md:
+    fontFamily: Plus Jakarta Sans
+    fontSize: 20px
+    fontWeight: '600'
+    lineHeight: 28px
+  headline-sm:
+    fontFamily: Plus Jakarta Sans
+    fontSize: 16px
+    fontWeight: '600'
+    lineHeight: 24px
+  body-lg:
+    fontFamily: Inter
+    fontSize: 16px
+    fontWeight: '400'
+    lineHeight: 24px
+  body-md:
+    fontFamily: Inter
+    fontSize: 14px
+    fontWeight: '400'
+    lineHeight: 20px
+  body-sm:
+    fontFamily: Inter
+    fontSize: 12px
+    fontWeight: '400'
+    lineHeight: 16px
+  label-md:
+    fontFamily: Inter
+    fontSize: 13px
+    fontWeight: '600'
+    lineHeight: 18px
+  label-sm:
+    fontFamily: Inter
+    fontSize: 11px
+    fontWeight: '600'
+    lineHeight: 14px
+  metric-stat:
+    fontFamily: Plus Jakarta Sans
+    fontSize: 32px
+    fontWeight: '800'
+    lineHeight: 36px
+rounded:
+  sm: 0.25rem
+  DEFAULT: 0.5rem
+  md: 0.75rem
+  lg: 1rem
+  xl: 1.5rem
+  full: 9999px
+spacing:
+  gutter: 1.5rem
+  gutter-mobile: 0.75rem
+  margin: 2rem
+  margin-mobile: 1rem
+  space-xs: 0.25rem
+  space-sm: 0.5rem
+  space-md: 1rem
+  space-lg: 1.5rem
+  space-xl: 2rem
+---
+
+## Brand & Style
+The design system establishes a high-trust, data-forward, and empathetic EdTech platform. It bridges institutional rigor with contemporary SaaS elegance, serving academic advisors, faculty leaders, and student success coordinators. 
+
+The aesthetic is Modern Functional SaaS: crisp metric containers, subtle translucency for predictive computational states, surgical data density, and clear risk classification. It evokes institutional confidence, urgency without panic, and proactive empathy. Interfaces must feel analytical yet approachable, eliminating cognitive fatigue during intensive student review sessions.
+
+## Colors
+The palette balances institutional clarity with focused AI intervention cues.
+
+- **Primary Blue (`#2563EB`)**: Drives primary navigation, standard batch actions, and baseline system signals.
+- **Secondary AI Purple (`#8B5CF6`)**: Reserved exclusively for AI predictions, algorithmic risk scores, automated recommendations, and neural synthesis indicators.
+- **Tertiary Sky Blue (`#38BDF8`)**: Used for contextual secondary accents, progress tracks, active interactive highlights, and metric delta comparisons.
+- **Dark Navy (`#0F172A`)**: Primary typography and strong structural boundaries, avoiding harsh `#000000` to maintain optical softness.
+- **Backgrounds & Surfaces**: Canvas defaults to `#F8FAFC`, with layered surfaces moving between `#FFFFFF` (elevated cards) and `#F1F5F9` (recessed wells, table headers, and track backgrounds).
+
+### Semantic Status Tokens
+- **High Risk**: Background `#FEE2E2` (`red-100`), Text/Icon `#B91C1C` (`red-700`), Border `#FCA5A5`.
+- **Medium Risk**: Background `#FEF3C7` (`amber-100`), Text/Icon `#92400E` (`amber-800`), Border `#FCD34D`.
+- **Low Risk / Safe**: Background `#DCFCE7` (`green-100`), Text/Icon `#166534` (`green-800`), Border `#86EFAC`.
+- **Neutral / Informational**: Background `#E2E8F0`, Text/Icon `#334155`, Border `#CBD5E1`.
+
+## Typography
+The system couples **Plus Jakarta Sans** for headlines, section titles, and key dashboard performance indicators with **Inter** for dense tabular data, metadata labels, and running body prose.
+
+Numeric readouts in tables and student analytics must use tabular figures (`font-variant-numeric: tabular-nums`) to ensure strict vertical visual alignment across comparative student cohort panels. Line lengths for case notes and academic intervention recommendations should remain under 72 characters.
+
+## Layout & Spacing
+The layout adheres to a flexible 12-column grid on desktop screens, transitioning to 8 columns on tablet devices and 4 columns on mobile viewports.
+
+- **Breakpoints**: Mobile (< 640px), Tablet (640px - 1024px), Desktop (1024px - 1440px), Wide Enterprise (≥ 1441px).
+- **Rhythm**: Spacing follows an 8px base grid, with 4px steps reserved for dense data controls, badge padding, and metric chips.
+- **Card Padding**: Primary metric and analytics cards use `space-lg` (24px) internally on desktop, scaling down to `space-md` (16px) on mobile viewports.
+- **Data Tables**: Table cell padding is constrained to 12px vertical and 16px horizontal to sustain high informational throughput without visual clutter.
+
+## Elevation & Depth
+Depth is created via soft ambient shadows paired with low-contrast structural borders (`#E2E8F0` at 1px width), preventing elements from appearing unanchored.
+
+- **Surface Level 0 (Base Canvas)**: Background at `#F8FAFC`, flat.
+- **Surface Level 1 (Card & Content Panels)**: Pure white `#FFFFFF` paired with a delicate multi-stop shadow: `0 1px 3px 0 rgba(15, 23, 42, 0.05), 0 1px 2px -1px rgba(15, 23, 42, 0.05)` and a subtle border `1px solid #E2E8F0`.
+- **Surface Level 2 (Interactive Hover & Flyouts)**: Lifted cards and floating intervention drawers use `0 10px 15px -3px rgba(15, 23, 42, 0.08), 0 4px 6px -4px rgba(15, 23, 42, 0.04)`.
+- **Surface Level 3 (Modals & Action Sheets)**: `0 20px 25px -5px rgba(15, 23, 42, 0.1), 0 8px 10px -6px rgba(15, 23, 42, 0.06)`.
+- **AI Recommendation Highlights**: Subtle glow overlay using `0 0 0 1px rgba(139, 92, 246, 0.2), 0 4px 12px 0 rgba(139, 92, 246, 0.08)` to mark algorithmic intervention suggestions distinctly.
+
+## Shapes
+A unified rounded geometry (`roundedness: 2`) introduces a modern, polished aesthetic that avoids rigid technical austerity:
+
+- **Dashboard Containers & Metric Cards**: Styled with `rounded-2xl` (16px radius) to soften complex cohort matrices.
+- **Form Controls, Table Cells, and Action Buttons**: Styled with `rounded-lg` (8px radius) for clean touch and click ergonomics.
+- **Status Indicators, Risk Tags, and Filter Badges**: Completely rounded using full-radius pill silhouettes (`rounded-full`) to visually separate data descriptors from actionable block elements.
+
+## Components
+
+### Buttons
+- **Primary Action**: Solid `#2563EB` fill, white text, 8px border radius, medium font weight. Subtle active scale transform (`0.98`).
+- **AI Prediction Action**: Gradient or solid `#8B5CF6` fill with white text, accompanied by an AI icon. Dedicated to executing batch interventions or generating risk synthesis reports.
+- **Secondary Action**: White surface, 1px `#E2E8F0` border, `#0F172A` text, hovering to `#F8FAFC`.
+- **Destructive**: Red tinted base `#FEE2E2` with `#B91C1C` text; solid `#EF4444` for irreversible actions (e.g., student unenrollment).
+
+### Risk Badges & Status Pills
+- Pill-shaped (`rounded-full`), `space-xs` (4px) vertical and `space-sm` (10px) horizontal padding.
+- Include a 6px status dot alongside clear textual indicators:
+  - **High Risk**: `#FEE2E2` background, `#B91C1C` label, `#EF4444` dot.
+  - **Medium Risk**: `#FEF3C7` background, `#92400E` label, `#F59E0B` dot.
+  - **Low Risk**: `#DCFCE7` background, `#166534` label, `#22C55E` dot.
+
+### Academic Cards
+- Default to `#FFFFFF` background, `rounded-2xl` geometry, 1px `#E2E8F0` outer edge, and Level 1 elevation.
+- Dividers between card headers and analytical graphs use `#F1F5F9`.
+
+### Input Fields & Controls
+- **Inputs & Selects**: Height of 40px, `#FFFFFF` fill, 1px `#CBD5E1` border, 8px corner radius. Focused state applies a `#2563EB` ring with 3px spread at 20% opacity.
+- **Checkboxes & Radios**: 16px outer box/circle with `#2563EB` active fill and crisp check/dot glyphs.
+
+### Predictive AI Suggestion Panel
+- Specialized container featuring a faint `#F5F3FF` background, a 1px border colored `#DDD6FE`, a small violet badge (`AI Insights`), and an action link to instantly assign the recommended intervention pathway to the student advisor.
