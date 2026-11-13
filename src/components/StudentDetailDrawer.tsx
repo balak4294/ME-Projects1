@@ -8,6 +8,7 @@ import type {
   UserRole,
 } from '../types/edupredict';
 import {
+  clamp,
   getStudentRiskSummary,
   simulateProjectedRisk,
 } from '../utils/riskEngine';
@@ -103,9 +104,9 @@ export function StudentDetailDrawer({
   const handleSaveRecord = (e: FormEvent) => {
     e.preventDefault();
     onUpdateAcademicRecord(student.id, {
-      attendanceRate: editAttendance,
-      internalMarksAvg: editMarks,
-      missingAssignments: editMissing,
+      attendanceRate: clamp(editAttendance, 0, 100),
+      internalMarksAvg: clamp(editMarks, 0, 100),
+      missingAssignments: clamp(editMissing, 0, 15),
       facultyId: role === 'admin' ? editFacultyId : undefined,
     });
   };
@@ -355,6 +356,60 @@ export function StudentDetailDrawer({
               </div>
             </section>
           )}
+
+          {/* Archived / Historical Subject Records */}
+          {student.historicalSubjectRecords &&
+            student.historicalSubjectRecords.length > 0 && (
+              <section className="space-y-2.5">
+                <div className="flex items-center justify-between gap-2">
+                  <h3 className="text-sm font-semibold text-[#0F172A]">
+                    Archived Historical Subject Records ({student.historicalSubjectRecords.length})
+                  </h3>
+                  <span className="text-[11px] text-[#64748B]">
+                    Preserved after subject reassignment or removal
+                  </span>
+                </div>
+                <div className="overflow-x-auto rounded-xl border border-[#E2E8F0] bg-[#F8FAFC]">
+                  <table className="w-full text-left border-collapse text-xs">
+                    <thead>
+                      <tr className="bg-[#F1F5F9] text-[10px] font-semibold uppercase tracking-wide text-[#434655]">
+                        <th className="py-2 px-3">Subject</th>
+                        <th className="py-2 px-3">Archived From</th>
+                        <th className="py-2 px-3 text-right">Attendance</th>
+                        <th className="py-2 px-3 text-right">IA Avg</th>
+                        <th className="py-2 px-3 text-right">Archived On</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-[#E2E8F0]">
+                      {student.historicalSubjectRecords.map((hist, idx) => (
+                        <tr key={`${hist.subjectId}-${hist.archivedAt}-${idx}`}>
+                          <td className="py-2 px-3">
+                            <span className="font-semibold text-[#0F172A]">
+                              {hist.subjectCode}
+                            </span>{' '}
+                            <span className="text-[#434655]">
+                              {hist.subjectName}
+                            </span>
+                          </td>
+                          <td className="py-2 px-3 text-[#434655]">
+                            {hist.archivedFromClassName}
+                          </td>
+                          <td className="py-2 px-3 text-right tabular-nums">
+                            {hist.attendancePct}%
+                          </td>
+                          <td className="py-2 px-3 text-right tabular-nums font-medium">
+                            {hist.internalAvg}%
+                          </td>
+                          <td className="py-2 px-3 text-right tabular-nums text-[#64748B]">
+                            {hist.archivedAt}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </section>
+            )}
 
           {/* Algorithmic Risk Drivers */}
           <section className="space-y-3">

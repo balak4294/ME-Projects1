@@ -6,7 +6,15 @@ interface CohortTrajectoryChartProps {
 }
 
 export function CohortTrajectoryChart({ data }: CohortTrajectoryChartProps) {
-  const [activeIndex, setActiveIndex] = useState<number>(data.length - 1);
+  const [activeIndex, setActiveIndex] = useState<number>(Math.max(0, data.length - 1));
+
+  if (data.length === 0) {
+    return (
+      <div className="p-6 text-center text-xs text-[#64748B]">
+        No cohort retention trajectory data available yet.
+      </div>
+    );
+  }
 
   const width = 680;
   const height = 230;
@@ -108,7 +116,7 @@ export function CohortTrajectoryChart({ data }: CohortTrajectoryChartProps) {
           aria-label="10-week cohort retention trajectory chart"
         >
           <defs>
-            <linearGradient id="eduPredictArea" x1="0" y1="0" x2="0" y2="1">
+            <linearGradient id="eduPulseArea" x1="0" y1="0" x2="0" y2="1">
               <stop offset="0%" stopColor="#8B5CF6" stopOpacity="0.18" />
               <stop offset="100%" stopColor="#8B5CF6" stopOpacity="0.01" />
             </linearGradient>
@@ -140,7 +148,7 @@ export function CohortTrajectoryChart({ data }: CohortTrajectoryChartProps) {
             );
           })}
 
-          <path d={areaPath} fill="url(#eduPredictArea)" />
+          <path d={areaPath} fill="url(#eduPulseArea)" />
 
           <polyline
             fill="none"

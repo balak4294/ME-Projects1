@@ -281,81 +281,87 @@ export function OverviewScreen({
             </button>
           </div>
 
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="bg-[#F1F5F9] text-[11px] font-semibold uppercase tracking-wide text-[#434655]">
-                  <th className="py-3 px-4">Student</th>
-                  <th className="py-3 px-4 text-right">Attendance</th>
-                  <th className="py-3 px-4 text-right">CGPA (10)</th>
-                  <th className="py-3 px-4">Simulated Risk</th>
-                  <th className="py-3 px-4 text-right">Action</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-[#F1F5F9] text-sm">
-                {priorityStudents.map((student) => {
-                  const { effectiveScore, tier } = getStudentRiskSummary(student, thresholds);
-                  const hasActive = activeStudentIds.has(student.id);
-                  return (
-                    <tr
-                      key={student.id}
-                      className="hover:bg-[#F8FAFC] transition-colors"
-                    >
-                      <td className="py-3 px-4">
-                        <button
-                          type="button"
-                          onClick={() => onInspectStudent(student.id)}
-                          className="text-left group cursor-pointer"
-                        >
-                          <div className="font-semibold text-[#0F172A] group-hover:text-[#2563EB] transition-colors">
-                            {student.name}
-                          </div>
-                          <div className="text-xs text-[#434655] mt-0.5">
-                            {student.studentCode} · {student.className} · Sem {student.semester}
-                          </div>
-                        </button>
-                      </td>
-                      <td className="py-3 px-4 text-right tabular-nums font-medium text-[#0F172A]">
-                        {student.attendanceRate}%
-                      </td>
-                      <td className="py-3 px-4 text-right tabular-nums text-[#0F172A]">
-                        {student.gpa.toFixed(2)}
-                      </td>
-                      <td className="py-3 px-4">
-                        <RiskBadge tier={tier} score={effectiveScore} />
-                      </td>
-                      <td className="py-3 px-4 text-right">
-                        <div className="inline-flex items-center gap-2">
+          {priorityStudents.length === 0 ? (
+            <div className="p-8 text-center text-xs text-[#64748B]">
+              No monitored student records available yet.
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="bg-[#F1F5F9] text-[11px] font-semibold uppercase tracking-wide text-[#434655]">
+                    <th className="py-3 px-4">Student</th>
+                    <th className="py-3 px-4 text-right">Attendance</th>
+                    <th className="py-3 px-4 text-right">CGPA (10)</th>
+                    <th className="py-3 px-4">Simulated Risk</th>
+                    <th className="py-3 px-4 text-right">Action</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-[#F1F5F9] text-sm">
+                  {priorityStudents.map((student) => {
+                    const { effectiveScore, tier } = getStudentRiskSummary(student, thresholds);
+                    const hasActive = activeStudentIds.has(student.id);
+                    return (
+                      <tr
+                        key={student.id}
+                        className="hover:bg-[#F8FAFC] transition-colors"
+                      >
+                        <td className="py-3 px-4">
                           <button
                             type="button"
                             onClick={() => onInspectStudent(student.id)}
-                            aria-label={`Inspect ${student.name}`}
-                            className="rounded-lg border border-[#E2E8F0] bg-white hover:bg-[#F8FAFC] px-3 py-1.5 text-xs font-medium text-[#0F172A] whitespace-nowrap cursor-pointer"
+                            className="text-left group cursor-pointer"
                           >
-                            Inspect
+                            <div className="font-semibold text-[#0F172A] group-hover:text-[#2563EB] transition-colors">
+                              {student.name}
+                            </div>
+                            <div className="text-xs text-[#434655] mt-0.5">
+                              {student.studentCode} · {student.className} · Sem {student.semester}
+                            </div>
                           </button>
-                          {!hasActive ? (
+                        </td>
+                        <td className="py-3 px-4 text-right tabular-nums font-medium text-[#0F172A]">
+                          {student.attendanceRate}%
+                        </td>
+                        <td className="py-3 px-4 text-right tabular-nums text-[#0F172A]">
+                          {student.gpa.toFixed(2)}
+                        </td>
+                        <td className="py-3 px-4">
+                          <RiskBadge tier={tier} score={effectiveScore} />
+                        </td>
+                        <td className="py-3 px-4 text-right">
+                          <div className="inline-flex items-center gap-2">
                             <button
                               type="button"
-                              onClick={() => onAssignAiPathway(student.id)}
-                              aria-label={`Assign AI pathway to ${student.name}`}
-                              className="rounded-lg bg-[#2563EB] hover:bg-[#1D4ED8] px-3 py-1.5 text-xs font-medium text-white whitespace-nowrap cursor-pointer"
+                              onClick={() => onInspectStudent(student.id)}
+                              aria-label={`Inspect ${student.name}`}
+                              className="rounded-lg border border-[#E2E8F0] bg-white hover:bg-[#F8FAFC] px-3 py-1.5 text-xs font-medium text-[#0F172A] whitespace-nowrap cursor-pointer"
                             >
-                              Assign Pathway
+                              Inspect
                             </button>
-                          ) : (
-                            <span className="text-xs font-medium text-[#6B38D4] whitespace-nowrap px-1.5">
-                              In Pathway
-                            </span>
-                          )}
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
+                            {!hasActive ? (
+                              <button
+                                type="button"
+                                onClick={() => onAssignAiPathway(student.id)}
+                                aria-label={`Assign AI pathway to ${student.name}`}
+                                className="rounded-lg bg-[#2563EB] hover:bg-[#1D4ED8] px-3 py-1.5 text-xs font-medium text-white whitespace-nowrap cursor-pointer"
+                              >
+                                Assign Pathway
+                              </button>
+                            ) : (
+                              <span className="text-xs font-medium text-[#6B38D4] whitespace-nowrap px-1.5">
+                                In Pathway
+                              </span>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
         </section>
 
         {/* Course Bottleneck Watchlist */}
@@ -368,34 +374,40 @@ export function OverviewScreen({
               Subjects with highest simulated arrear-risk concentration
             </p>
           </div>
-          <ul className="mt-4 space-y-4">
-            {bottlenecks.map((course) => (
-              <li key={course.courseCode} className="space-y-1.5">
-                <div className="flex items-baseline justify-between gap-2">
-                  <div>
-                    <span className="text-sm font-semibold text-[#0F172A]">
-                      {course.courseCode}
-                    </span>
-                    <span className="text-xs text-[#434655] ml-2">
-                      {course.courseName}
+          {bottlenecks.length === 0 ? (
+            <p className="mt-4 text-xs text-[#64748B]">
+              No subject arrear-risk bottlenecks detected across active classes.
+            </p>
+          ) : (
+            <ul className="mt-4 space-y-4">
+              {bottlenecks.map((course) => (
+                <li key={course.courseCode} className="space-y-1.5">
+                  <div className="flex items-baseline justify-between gap-2">
+                    <div>
+                      <span className="text-sm font-semibold text-[#0F172A]">
+                        {course.courseCode}
+                      </span>
+                      <span className="text-xs text-[#434655] ml-2">
+                        {course.courseName}
+                      </span>
+                    </div>
+                    <span className="text-xs font-semibold text-[#B91C1C] tabular-nums shrink-0">
+                      {course.dfwRate}% Risk
                     </span>
                   </div>
-                  <span className="text-xs font-semibold text-[#B91C1C] tabular-nums shrink-0">
-                    {course.dfwRate}% Risk
-                  </span>
-                </div>
-                <div className="h-1.5 w-full rounded-full bg-[#F1F5F9] overflow-hidden">
-                  <div
-                    className="h-full rounded-full bg-[#38BDF8]"
-                    style={{ width: `${Math.min(100, course.dfwRate * 3.5)}%` }}
-                  />
-                </div>
-                <p className="text-xs text-[#434655] tabular-nums">
-                  {course.atRiskCount} flagged of {course.enrolled} enrolled · {course.department}
-                </p>
-              </li>
-            ))}
-          </ul>
+                  <div className="h-1.5 w-full rounded-full bg-[#F1F5F9] overflow-hidden">
+                    <div
+                      className="h-full rounded-full bg-[#38BDF8]"
+                      style={{ width: `${Math.min(100, course.dfwRate * 3.5)}%` }}
+                    />
+                  </div>
+                  <p className="text-xs text-[#434655] tabular-nums">
+                    {course.atRiskCount} flagged of {course.enrolled} enrolled · {course.department}
+                  </p>
+                </li>
+              ))}
+            </ul>
+          )}
         </section>
       </div>
     </div>

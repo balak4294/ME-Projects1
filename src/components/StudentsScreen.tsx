@@ -9,6 +9,7 @@ import type {
   UserRole,
 } from '../types/edupredict';
 import {
+  clamp,
   computeStudentAssignmentCompletionPct,
   filterStudents,
   formatStudentCsv,
@@ -161,9 +162,9 @@ export function StudentsScreen({
       semester: newSemester,
       section: newSection.trim() || 'A',
       facultyId: newFacultyId,
-      attendanceRate: newAttendance,
-      internalMarksAvg: newMarks,
-      missingAssignments: newMissing,
+      attendanceRate: clamp(newAttendance, 0, 100),
+      internalMarksAvg: clamp(newMarks, 0, 100),
+      missingAssignments: clamp(newMissing, 0, 15),
     });
     setNewName('');
     setNewEmail('');
@@ -464,7 +465,7 @@ export function StudentsScreen({
           aria-modal="true"
           aria-labelledby="add-student-modal-title"
         >
-          <div className="w-full max-w-lg rounded-2xl bg-white border border-[#E2E8F0] shadow-xl p-6">
+          <div className="w-full max-w-lg rounded-2xl bg-white border border-[#E2E8F0] shadow-xl p-6 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between pb-3 border-b border-[#F1F5F9]">
               <h2 id="add-student-modal-title" className="text-lg font-bold text-[#0F172A]">
                 Add Student Record

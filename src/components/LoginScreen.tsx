@@ -78,19 +78,41 @@ export function LoginScreen({ facultyList, students, onLogin }: LoginScreenProps
 
   const handleFacultyChange = (id: string) => {
     setSelectedFacultyId(id);
+    setError('');
     const fac = facultyList.find((f) => f.id === id);
     if (fac) setEmail(fac.email);
   };
 
   const handleStudentChange = (id: string) => {
     setSelectedStudentId(id);
+    setError('');
     const stu = students.find((s) => s.id === id);
     if (stu) setEmail(stu.email);
   };
 
+  const handleEmailChange = (nextEmail: string) => {
+    setEmail(nextEmail);
+    if (error) setError('');
+    const normalized = nextEmail.trim().toLowerCase();
+    if (selectedRole === 'faculty') {
+      const matchedFac = facultyList.find(
+        (f) => f.email.toLowerCase() === normalized
+      );
+      if (matchedFac) setSelectedFacultyId(matchedFac.id);
+    } else if (selectedRole === 'student') {
+      const matchedStu = students.find(
+        (s) => s.email.toLowerCase() === normalized
+      );
+      if (matchedStu) setSelectedStudentId(matchedStu.id);
+    }
+  };
+
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
-    if (!email.trim() || !email.includes('@')) {
+    const trimmedEmail = email.trim();
+    const normalizedEmail = trimmedEmail.toLowerCase();
+
+    if (!trimmedEmail || !trimmedEmail.includes('@')) {
       setError('Please enter a valid college email address.');
       return;
     }
@@ -105,32 +127,62 @@ export function LoginScreen({ facultyList, students, onLogin }: LoginScreenProps
         userId: 'adm-01',
         displayName: 'Dr. V. Balasubramanian',
         subtitle: 'Principal · Kongu Institute of Technology',
-        email: email.trim(),
+        email: trimmedEmail,
       });
       return;
     }
 
     if (selectedRole === 'faculty') {
-      const fac = facultyList.find((f) => f.id === selectedFacultyId) ?? facultyList[0];
-      if (!fac) return;
+      const emailMatched = facultyList.find(
+        (f) => f.email.toLowerCase() === normalizedEmail
+      );
+      const selectedFac = facultyList.find((f) => f.id === selectedFacultyId);
+      const fac =
+        emailMatched ??
+        (selectedFac && selectedFac.email.toLowerCase() === normalizedEmail
+          ? selectedFac
+          : undefined);
+
+      if (!fac) {
+        setError(
+          'No matching faculty account found for this college email. Choose an account from the dropdown or enter its institutional email.'
+        );
+        return;
+      }
+
       onLogin({
         role: 'faculty',
         userId: fac.id,
         displayName: fac.name,
         subtitle: `${fac.department} · ${fac.title}`,
-        email: email.trim(),
+        email: fac.email,
       });
       return;
     }
 
-    const stu = students.find((s) => s.id === selectedStudentId) ?? students[0];
-    if (!stu) return;
+    const emailMatchedStu = students.find(
+      (s) => s.email.toLowerCase() === normalizedEmail
+    );
+    const selectedStu = students.find((s) => s.id === selectedStudentId);
+    const stu =
+      emailMatchedStu ??
+      (selectedStu && selectedStu.email.toLowerCase() === normalizedEmail
+        ? selectedStu
+        : undefined);
+
+    if (!stu) {
+      setError(
+        'No matching student profile found for this college email. Select a student from the dropdown or enter their register email.'
+      );
+      return;
+    }
+
     onLogin({
       role: 'student',
       userId: stu.id,
       displayName: stu.name,
       subtitle: `${stu.studentCode} · ${stu.className}`,
-      email: email.trim(),
+      email: stu.email,
     });
   };
 
@@ -279,10 +331,7 @@ export function LoginScreen({ facultyList, students, onLogin }: LoginScreenProps
                   id="login-email"
                   type="email"
                   value={email}
-                  onChange={(e) => {
-                    setEmail(e.target.value);
-                    if (error) setError('');
-                  }}
+                  onChange={(e) => handleEmailChange(e.target.value)}
                   className="edu-input w-full px-3 text-sm text-[#0F172A]"
                 />
               </div>
@@ -327,6 +376,10 @@ export function LoginScreen({ facultyList, students, onLogin }: LoginScreenProps
                 </span>
                 <ArrowRight className="h-4 w-4" aria-hidden="true" />
               </button>
+
+              <p className="text-[11px] text-[#64748B] leading-relaxed pt-1 border-t border-[#E2E8F0]">
+                Frontend demo mode: sessions persist in your browser (<code className="font-mono">localStorage</code>) and use simulated risk heuristics rather than production authentication or trained ML.
+              </p>
             </form>
           </div>
         </div>

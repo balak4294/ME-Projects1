@@ -24,6 +24,7 @@ import {
   TN_DEPARTMENTS,
   TN_LOCATIONS,
 } from '../utils/riskEngine';
+import { ConfirmModal } from './ConfirmModal';
 import { RiskBadge } from './RiskBadge';
 
 interface FacultyStudentManagementScreenProps {
@@ -113,9 +114,12 @@ export function FacultyStudentManagementScreen({
 
   const [isImportOpen, setIsImportOpen] = useState(false);
   const [csvText, setCsvText] = useState(SAMPLE_TN_CSV);
+  const [pendingRemoveStudent, setPendingRemoveStudent] = useState<Student | null>(
+    null
+  );
 
   const classStudents = students.filter((s) =>
-    activeClassId ? s.classId === activeClassId : true
+    activeClassId ? s.classId === activeClassId : false
   );
 
   const filtered = filterStudents(
@@ -234,14 +238,19 @@ export function FacultyStudentManagementScreen({
             <select
               id="fac-stu-class-select"
               value={activeClassId}
+              disabled={classes.length === 0}
               onChange={(e) => onSelectClass(e.target.value)}
-              className="edu-input px-3 text-sm font-semibold text-[#0F172A]"
+              className="edu-input px-3 text-sm font-semibold text-[#0F172A] disabled:opacity-60"
             >
-              {classes.map((cls) => (
-                <option key={cls.id} value={cls.id}>
-                  {cls.className} (Sem {cls.semester})
-                </option>
-              ))}
+              {classes.length === 0 ? (
+                <option value="">No classes created yet</option>
+              ) : (
+                classes.map((cls) => (
+                  <option key={cls.id} value={cls.id}>
+                    {cls.className} (Sem {cls.semester})
+                  </option>
+                ))
+              )}
             </select>
           </div>
 
@@ -416,7 +425,7 @@ export function FacultyStudentManagementScreen({
                           </button>
                           <button
                             type="button"
-                            onClick={() => onRemoveStudent(stu.id)}
+                            onClick={() => setPendingRemoveStudent(stu)}
                             aria-label={`Remove ${stu.name} from class`}
                             className="rounded-lg border border-[#FECACA] bg-white hover:bg-[#FEF2F2] p-1.5 text-[#B91C1C] cursor-pointer"
                           >
@@ -628,7 +637,7 @@ export function FacultyStudentManagementScreen({
           aria-modal="true"
           aria-labelledby="csv-import-title"
         >
-          <div className="w-full max-w-2xl rounded-2xl bg-white border border-[#E2E8F0] shadow-xl p-6 space-y-4">
+          <div className="w-full max-w-2xl rounded-2xl bg-white border border-[#E2E8F0] shadow-xl p-6 max-h-[90vh] overflow-y-auto space-y-4">
             <div className="flex items-center justify-between pb-3 border-b border-[#F1F5F9]">
               <div className="flex items-center gap-2">
                 <FileSpreadsheet className="h-5 w-5 text-[#2563EB]" aria-hidden="true" />
@@ -693,6 +702,25 @@ export function FacultyStudentManagementScreen({
           </div>
         </div>
       )}
+
+      <ConfirmModal
+        open={pendingRemoveStudent !== null}
+        title="Remove Student from Class?"
+        description={
+          pendingRemoveStudent
+            ? `Remove ${pendingRemoveStudent.name} (${pendingRemoveStudent.studentCode}) from ${pendingRemoveStudent.className}? Any associated improvement plans for this student will also be cleared.`
+            : ''
+        }
+        confirmLabel="Remove Student"
+        tone="danger"
+        onCancel={() => setPendingRemoveStudent(null)}
+        onConfirm={() => {
+          if (pendingRemoveStudent) {
+            onRemoveStudent(pendingRemoveStudent.id);
+          }
+          setPendingRemoveStudent(null);
+        }}
+      />
     </div>
   );
 }

@@ -301,45 +301,51 @@ export function StudentDashboard({
                 View full IA &amp; assignment breakdown
               </button>
             </div>
-            <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse">
-                <thead>
-                  <tr className="bg-[#F1F5F9] text-[11px] font-semibold uppercase tracking-wide text-[#434655]">
-                    <th className="py-3 px-4">Subject</th>
-                    <th className="py-3 px-4">Type</th>
-                    <th className="py-3 px-4 text-right">Days Present</th>
-                    <th className="py-3 px-4 text-right">Attendance %</th>
-                    <th className="py-3 px-4 text-right">IA1 / IA2 / IA3</th>
-                    <th className="py-3 px-4 text-right">Internal Avg</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-[#F1F5F9] text-sm">
-                  {student.subjectRecords.map((rec) => (
-                    <tr key={rec.subjectId} className="hover:bg-[#F8FAFC]">
-                      <td className="py-3 px-4">
-                        <div className="font-semibold text-[#0F172A]">{rec.subjectCode}</div>
-                        <div className="text-xs text-[#434655]">{rec.subjectName}</div>
-                      </td>
-                      <td className="py-3 px-4 text-xs font-medium text-[#434655]">
-                        {rec.subjectType} ({rec.credits} Cr)
-                      </td>
-                      <td className="py-3 px-4 text-right tabular-nums text-xs text-[#434655]">
-                        {rec.daysPresent} / {rec.totalWorkingDays}
-                      </td>
-                      <td className="py-3 px-4 text-right tabular-nums font-semibold text-[#0F172A]">
-                        {rec.attendancePct}%
-                      </td>
-                      <td className="py-3 px-4 text-right tabular-nums text-xs text-[#434655]">
-                        {rec.ia1} · {rec.ia2} · {rec.ia3}
-                      </td>
-                      <td className="py-3 px-4 text-right tabular-nums font-semibold text-[#2563EB]">
-                        {rec.internalAvg}%
-                      </td>
+            {student.subjectRecords.length === 0 ? (
+              <div className="p-8 text-center text-xs text-[#64748B]">
+                No active subjects are currently assigned to {student.className}. Check Progress &amp; History for any archived subject records.
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse">
+                  <thead>
+                    <tr className="bg-[#F1F5F9] text-[11px] font-semibold uppercase tracking-wide text-[#434655]">
+                      <th className="py-3 px-4">Subject</th>
+                      <th className="py-3 px-4">Type</th>
+                      <th className="py-3 px-4 text-right">Days Present</th>
+                      <th className="py-3 px-4 text-right">Attendance %</th>
+                      <th className="py-3 px-4 text-right">IA1 / IA2 / IA3</th>
+                      <th className="py-3 px-4 text-right">Internal Avg</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  </thead>
+                  <tbody className="divide-y divide-[#F1F5F9] text-sm">
+                    {student.subjectRecords.map((rec) => (
+                      <tr key={rec.subjectId} className="hover:bg-[#F8FAFC]">
+                        <td className="py-3 px-4">
+                          <div className="font-semibold text-[#0F172A]">{rec.subjectCode}</div>
+                          <div className="text-xs text-[#434655]">{rec.subjectName}</div>
+                        </td>
+                        <td className="py-3 px-4 text-xs font-medium text-[#434655]">
+                          {rec.subjectType} ({rec.credits} Cr)
+                        </td>
+                        <td className="py-3 px-4 text-right tabular-nums text-xs text-[#434655]">
+                          {rec.daysPresent} / {rec.totalWorkingDays}
+                        </td>
+                        <td className="py-3 px-4 text-right tabular-nums font-semibold text-[#0F172A]">
+                          {rec.attendancePct}%
+                        </td>
+                        <td className="py-3 px-4 text-right tabular-nums text-xs text-[#434655]">
+                          {rec.ia1} · {rec.ia2} · {rec.ia3}
+                        </td>
+                        <td className="py-3 px-4 text-right tabular-nums font-semibold text-[#2563EB]">
+                          {rec.internalAvg}%
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </section>
         </div>
       )}
@@ -584,49 +590,108 @@ export function StudentDashboard({
                 Read-only record of assignment submissions, dates (DD-MM-YYYY), and marks obtained
               </p>
             </div>
-            <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse">
-                <thead>
-                  <tr className="bg-[#F1F5F9] text-[11px] font-semibold uppercase tracking-wide text-[#434655]">
-                    <th className="py-3 px-4">Subject</th>
-                    <th className="py-3 px-4">Assignment Name</th>
-                    <th className="py-3 px-4">Submission Status</th>
-                    <th className="py-3 px-4">Submission Date</th>
-                    <th className="py-3 px-4 text-right">Marks Obtained</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-[#F1F5F9] text-sm">
-                  {allAssignments.map((asg) => (
-                    <tr key={asg.id} className="hover:bg-[#F8FAFC]">
-                      <td className="py-3 px-4 font-semibold text-[#0F172A] whitespace-nowrap">
-                        {asg.subjectCode}
-                      </td>
-                      <td className="py-3 px-4 text-[#0F172A]">{asg.name}</td>
-                      <td className="py-3 px-4">
-                        <span
-                          className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${
-                            asg.status === 'Submitted'
-                              ? 'bg-[#DCFCE7] text-[#166534]'
-                              : asg.status === 'Late'
-                                ? 'bg-[#FEF3C7] text-[#92400E]'
-                                : 'bg-[#FEE2E2] text-[#B91C1C]'
-                          }`}
-                        >
-                          {asg.status}
-                        </span>
-                      </td>
-                      <td className="py-3 px-4 text-xs text-[#434655] tabular-nums">
-                        {asg.submissionDate}
-                      </td>
-                      <td className="py-3 px-4 text-right tabular-nums font-medium text-[#0F172A]">
-                        {asg.marksObtained} / {asg.maxMarks}
-                      </td>
+            {allAssignments.length === 0 ? (
+              <div className="p-8 text-center text-xs text-[#64748B]">
+                No active subject assignments recorded for this semester yet.
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse">
+                  <thead>
+                    <tr className="bg-[#F1F5F9] text-[11px] font-semibold uppercase tracking-wide text-[#434655]">
+                      <th className="py-3 px-4">Subject</th>
+                      <th className="py-3 px-4">Assignment Name</th>
+                      <th className="py-3 px-4">Submission Status</th>
+                      <th className="py-3 px-4">Submission Date</th>
+                      <th className="py-3 px-4 text-right">Marks Obtained</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  </thead>
+                  <tbody className="divide-y divide-[#F1F5F9] text-sm">
+                    {allAssignments.map((asg) => (
+                      <tr key={asg.id} className="hover:bg-[#F8FAFC]">
+                        <td className="py-3 px-4 font-semibold text-[#0F172A] whitespace-nowrap">
+                          {asg.subjectCode}
+                        </td>
+                        <td className="py-3 px-4 text-[#0F172A]">{asg.name}</td>
+                        <td className="py-3 px-4">
+                          <span
+                            className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${
+                              asg.status === 'Submitted'
+                                ? 'bg-[#DCFCE7] text-[#166534]'
+                                : asg.status === 'Late'
+                                  ? 'bg-[#FEF3C7] text-[#92400E]'
+                                  : 'bg-[#FEE2E2] text-[#B91C1C]'
+                            }`}
+                          >
+                            {asg.status}
+                          </span>
+                        </td>
+                        <td className="py-3 px-4 text-xs text-[#434655] tabular-nums">
+                          {asg.submissionDate}
+                        </td>
+                        <td className="py-3 px-4 text-right tabular-nums font-medium text-[#0F172A]">
+                          {asg.marksObtained} / {asg.maxMarks}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </section>
+
+          {student.historicalSubjectRecords &&
+            student.historicalSubjectRecords.length > 0 && (
+              <section className="edu-card overflow-hidden">
+                <div className="px-6 py-4 border-b border-[#F1F5F9]">
+                  <h3 className="text-base font-semibold text-[#0F172A]">
+                    Archived Historical Subject Records ({student.historicalSubjectRecords.length})
+                  </h3>
+                  <p className="text-xs text-[#434655] mt-0.5">
+                    Preserved attendance and internal assessment records from previously assigned subjects
+                  </p>
+                </div>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left border-collapse">
+                    <thead>
+                      <tr className="bg-[#F1F5F9] text-[11px] font-semibold uppercase tracking-wide text-[#434655]">
+                        <th className="py-3 px-4">Subject</th>
+                        <th className="py-3 px-4">Previous Class</th>
+                        <th className="py-3 px-4 text-right">Attendance</th>
+                        <th className="py-3 px-4 text-right">Internal Avg</th>
+                        <th className="py-3 px-4 text-right">Archived Date</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-[#F1F5F9] text-sm">
+                      {student.historicalSubjectRecords.map((hist, idx) => (
+                        <tr key={`${hist.subjectId}-${hist.archivedAt}-${idx}`}>
+                          <td className="py-3 px-4">
+                            <div className="font-semibold text-[#0F172A]">
+                              {hist.subjectCode}
+                            </div>
+                            <div className="text-xs text-[#434655]">
+                              {hist.subjectName}
+                            </div>
+                          </td>
+                          <td className="py-3 px-4 text-xs text-[#434655]">
+                            {hist.archivedFromClassName}
+                          </td>
+                          <td className="py-3 px-4 text-right tabular-nums">
+                            {hist.attendancePct}%
+                          </td>
+                          <td className="py-3 px-4 text-right tabular-nums font-semibold">
+                            {hist.internalAvg}%
+                          </td>
+                          <td className="py-3 px-4 text-right tabular-nums text-xs text-[#64748B]">
+                            {hist.archivedAt}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </section>
+            )}
         </div>
       )}
     </div>

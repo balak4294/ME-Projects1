@@ -1,6 +1,12 @@
 import { useState, type FormEvent } from 'react';
 import { BookOpen, Edit3, Plus, Trash2, X } from 'lucide-react';
-import type { AcademicClass, FacultyMember, SubjectItem } from '../types/edupredict';
+import type {
+  AcademicClass,
+  FacultyMember,
+  Student,
+  SubjectItem,
+} from '../types/edupredict';
+import { ConfirmModal } from './ConfirmModal';
 
 interface FacultySubjectManagementScreenProps {
   faculty: FacultyMember;
@@ -9,6 +15,7 @@ interface FacultySubjectManagementScreenProps {
   selectedClassId: string;
   onSelectClass: (classId: string) => void;
   subjects: SubjectItem[];
+  students: Student[];
   onAddSubject: (payload: Omit<SubjectItem, 'id'>) => void;
   onUpdateSubject: (subjectId: string, payload: Omit<SubjectItem, 'id'>) => void;
   onRemoveSubject: (subjectId: string) => void;
@@ -22,6 +29,7 @@ export function FacultySubjectManagementScreen({
   selectedClassId,
   onSelectClass,
   subjects,
+  students,
   onAddSubject,
   onUpdateSubject,
   onRemoveSubject,
@@ -43,6 +51,20 @@ export function FacultySubjectManagementScreen({
   const [assignedFacultyId, setAssignedFacultyId] = useState(faculty.id);
   const [semester, setSemester] = useState(activeClass?.semester ?? 3);
   const [formError, setFormError] = useState('');
+
+  const [pendingMoveConfirm, setPendingMoveConfirm] = useState<{
+    subjectId: string;
+    payload: Omit<SubjectItem, 'id'>;
+    fromClassName: string;
+    toClassName: string;
+    archivedStudentCount: number;
+    enrolledStudentCount: number;
+  } | null>(null);
+
+  const [pendingDeleteSubject, setPendingDeleteSubject] = useState<{
+    subject: SubjectItem;
+    affectedCount: number;
+  } | null>(null);
 
   const openAddModal = () => {
     setEditingSubjectId(null);
@@ -92,6 +114,30 @@ export function FacultySubjectManagementScreen({
     };
 
     if (editingSubjectId) {
+      const existingSub = subjects.find((s) => s.id === editingSubjectId);
+      if (existingSub && existingSub.classId !== payload.classId) {
+        const fromCls = classes.find((c) => c.id === existingSub.classId);
+        const toCls = classes.find((c) => c.id === payload.classId);
+        const archivedStudentCount = students.filter(
+          (stu) =>
+            stu.classId === existingSub.classId &&
+            stu.subjectRecords.some((r) => r.subjectId === existingSub.id)
+        ).length;
+        const enrolledStudentCount = students.filter(
+          (stu) => stu.classId === payload.classId
+        ).length;
+
+        setIsModalOpen(false);
+        setPendingMoveConfirm({
+          subjectId: editingSubjectId,
+          payload,
+          fromClassName: fromCls?.className ?? 'Original Class',
+          toClassName: toCls?.className ?? 'Target Class',
+          archivedStudentCount,
+          enrolledStudentCount,
+        });
+        return;
+      }
       onUpdateSubject(editingSubjectId, payload);
     } else {
       onAddSubject(payload);
@@ -226,7 +272,14 @@ export function FacultySubjectManagementScreen({
                         </button>
                         <button
                           type="button"
-                          onClick={() => onRemoveSubject(sub.id)}
+                          onClick={() => {
+                            const affectedCount = students.filter(
+                              (stu) =>
+                                stu.classId === sub.classId &&
+                                stu.subjectRecords.some((r) => r.subjectId === sub.id)
+                            ).length;
+                            setPendingDeleteSubject({ subject: sub, affectedCount });
+                          }}
                           aria-label={`Remove ${sub.code}`}
                           className="rounded-lg border border-[#FECACA] bg-white hover:bg-[#FEF2F2] p-1.5 text-[#B91C1C] cursor-pointer"
                         >
@@ -250,7 +303,7 @@ export function FacultySubjectManagementScreen({
           aria-modal="true"
           aria-labelledby="sub-modal-title"
         >
-          <div className="w-full max-w-lg rounded-2xl bg-white border border-[#E2E8F0] shadow-xl p-6">
+          <div className="w-full max-w-lg rounded-2xl bg-white border border-[#E2E8F0] shadow-xl p-6 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between pb-3 border-b border-[#F1F5F9]">
               <h2 id="sub-modal-title" className="text-lg font-bold text-[#0F172A]">
                 {editingSubjectId ? 'Edit Subject Assignment' : 'Create & Assign Subject'}
@@ -400,6 +453,46 @@ export function FacultySubjectManagementScreen({
           </div>
         </div>
       )}
+
+      {/* Confirmation for moving a subject across classes */}
+      <ConfirmModal
+        open={pendingMoveConfirm !== null}
+        title="Move Subject to Another Class?"
+        description={
+          pendingMoveConfirm
+            ? `Moving ${pendingMoveConfirm.payload.code} – ${pendingMoveConfirm.payload.name} from "${pendingMoveConfirm.fromClassName}" to "${pendingMoveConfirm.toClassName}" will archive ${pendingMoveConfirm.archivedStudentCount} existing active student record(s) into Historical Records, initialize baseline subject records for ${pendingMoveConfirm.enrolledStudentCount} student(s) in the target class, and recalculate risk scores.`
+            : ''
+        }
+        confirmLabel="Move Subject & Recalculate"
+        tone="warning"
+        onCancel={() => setPendingMoveConfirm(null)}
+        onConfirm={() => {
+          if (pendingMoveConfirm) {
+            onUpdateSubject(pendingMoveConfirm.subjectId, pendingMoveConfirm.payload);
+          }
+          setPendingMoveConfirm(null);
+        }}
+      />
+
+      {/* Confirmation for removing a subject */}
+      <ConfirmModal
+        open={pendingDeleteSubject !== null}
+        title="Remove Subject from Class?"
+        description={
+          pendingDeleteSubject
+            ? `Remove ${pendingDeleteSubject.subject.code} – ${pendingDeleteSubject.subject.name}? Existing marks for ${pendingDeleteSubject.affectedCount} student(s) will be preserved under Archived Historical Records and student risk scores will be recalculated.`
+            : ''
+        }
+        confirmLabel="Remove Subject"
+        tone="danger"
+        onCancel={() => setPendingDeleteSubject(null)}
+        onConfirm={() => {
+          if (pendingDeleteSubject) {
+            onRemoveSubject(pendingDeleteSubject.subject.id);
+          }
+          setPendingDeleteSubject(null);
+        }}
+      />
     </div>
   );
 }

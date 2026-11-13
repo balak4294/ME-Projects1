@@ -1,8 +1,11 @@
 import type {
   AcademicClass,
+  AuthSession,
+  CourseBottleneck,
   DepartmentStats,
   FacultyMember,
   FacultyPerformance,
+  HistoricalSubjectRecord,
   Intervention,
   RiskDriver,
   RiskThresholds,
@@ -49,8 +52,13 @@ export const DEFAULT_THRESHOLDS: RiskThresholds = {
   autoFlagMissingAssignments: 3,
 };
 
+export function safeNumber(value: number, fallback = 0): number {
+  return typeof value === 'number' && Number.isFinite(value) ? value : fallback;
+}
+
 export function clamp(value: number, min: number, max: number): number {
-  return Math.min(max, Math.max(min, value));
+  const safe = safeNumber(value, min);
+  return Math.min(max, Math.max(min, safe));
 }
 
 export function formatDateDDMMYYYY(input: string): string {
@@ -88,24 +96,27 @@ export function computeEffectiveRiskScore(
   student: Student,
   thresholds: RiskThresholds = DEFAULT_THRESHOLDS
 ): number {
-  let score = student.riskScore;
+  let score = clamp(safeNumber(student.riskScore, 50), 0, 100);
+  const inactiveDays = Math.max(0, safeNumber(student.lmsInactiveDays, 0));
+  const attendance = clamp(safeNumber(student.attendanceRate, 75), 0, 100);
+  const missing = Math.max(0, safeNumber(student.missingAssignments, 0));
 
-  if (student.lmsInactiveDays >= thresholds.lmsInactivityAlertDays) {
-    const excessDays = student.lmsInactiveDays - thresholds.lmsInactivityAlertDays;
+  if (inactiveDays >= thresholds.lmsInactivityAlertDays) {
+    const excessDays = inactiveDays - thresholds.lmsInactivityAlertDays;
     score += Math.min(8, 2 + excessDays);
   }
 
-  if (student.attendanceRate < thresholds.attendanceFloorPct) {
-    const deficit = thresholds.attendanceFloorPct - student.attendanceRate;
+  if (attendance < thresholds.attendanceFloorPct) {
+    const deficit = thresholds.attendanceFloorPct - attendance;
     score += Math.min(10, Math.round(deficit * 0.4));
   }
 
-  if (student.missingAssignments >= thresholds.autoFlagMissingAssignments) {
-    const extra = student.missingAssignments - thresholds.autoFlagMissingAssignments;
+  if (missing >= thresholds.autoFlagMissingAssignments) {
+    const extra = missing - thresholds.autoFlagMissingAssignments;
     score += Math.min(8, 3 + extra * 2);
   }
 
-  return clamp(Math.round(score), 1, 99);
+  return clamp(Math.round(score), 0, 100);
 }
 
 /**
@@ -119,13 +130,18 @@ export function recalculateBaseRiskScoreFromRecord(params: {
   lmsInactiveDays: number;
   engagementScore?: number;
 }): number {
-  const attendancePenalty = Math.max(0, 95 - params.attendanceRate) * 0.85;
-  const marksPenalty = Math.max(0, 88 - params.internalMarksAvg) * 0.95;
-  const missingPenalty = clamp(params.missingAssignments, 0, 10) * 5.2;
-  const lmsPenalty = clamp(params.lmsInactiveDays, 0, 14) * 1.4;
+  const attendance = clamp(safeNumber(params.attendanceRate, 75), 0, 100);
+  const marks = clamp(safeNumber(params.internalMarksAvg, 75), 0, 100);
+  const missing = clamp(safeNumber(params.missingAssignments, 0), 0, 15);
+  const lmsDays = clamp(safeNumber(params.lmsInactiveDays, 0), 0, 30);
+
+  const attendancePenalty = Math.max(0, 95 - attendance) * 0.85;
+  const marksPenalty = Math.max(0, 88 - marks) * 0.95;
+  const missingPenalty = clamp(missing, 0, 10) * 5.2;
+  const lmsPenalty = clamp(lmsDays, 0, 14) * 1.4;
   const engagementPenalty =
-    typeof params.engagementScore === 'number'
-      ? Math.max(0, 75 - params.engagementScore) * 0.25
+    typeof params.engagementScore === 'number' && Number.isFinite(params.engagementScore)
+      ? Math.max(0, 75 - clamp(params.engagementScore, 0, 100)) * 0.25
       : 0;
 
   const raw =
@@ -135,7 +151,7 @@ export function recalculateBaseRiskScoreFromRecord(params: {
     missingPenalty +
     lmsPenalty +
     engagementPenalty;
-  return clamp(Math.round(raw), 8, 92);
+  return clamp(Math.round(raw), 0, 100);
 }
 
 export function computeRiskTier(
@@ -192,32 +208,36 @@ export function computeStudentAssignmentCompletionPct(student: Student): number 
 export function computeSubjectRecordMetrics(
   record: StudentSubjectRecord
 ): StudentSubjectRecord {
-  const workingDays = Math.max(1, Math.round(record.totalWorkingDays));
-  const present = clamp(Math.round(record.daysPresent), 0, workingDays);
+  const workingDays = Math.max(1, Math.round(safeNumber(record.totalWorkingDays, 40)));
+  const present = clamp(Math.round(safeNumber(record.daysPresent, 0)), 0, workingDays);
   const absent = workingDays - present;
-  const attendancePct = Math.round((present / workingDays) * 100);
+  const attendancePct = clamp(Math.round((present / workingDays) * 100), 0, 100);
 
-  const ia1 = clamp(Math.round(record.ia1), 0, 100);
-  const ia2 = clamp(Math.round(record.ia2), 0, 100);
-  const ia3 = clamp(Math.round(record.ia3), 0, 100);
-  const assignmentMarks = clamp(Math.round(record.assignmentMarks), 0, 100);
-  const practicalMarks = clamp(Math.round(record.practicalMarks), 0, 100);
+  const ia1 = clamp(Math.round(safeNumber(record.ia1, 0)), 0, 100);
+  const ia2 = clamp(Math.round(safeNumber(record.ia2, 0)), 0, 100);
+  const ia3 = clamp(Math.round(safeNumber(record.ia3, 0)), 0, 100);
+  const assignmentMarks = clamp(Math.round(safeNumber(record.assignmentMarks, 0)), 0, 100);
+  const practicalMarks = clamp(Math.round(safeNumber(record.practicalMarks, 0)), 0, 100);
 
-  const internalAvg =
+  const internalAvg = clamp(
     record.subjectType === 'Practical'
       ? Math.round(
           ia1 * 0.2 + ia2 * 0.2 + assignmentMarks * 0.2 + practicalMarks * 0.4
         )
-      : Math.round((ia1 + ia2 + ia3) * 0.25 + assignmentMarks * 0.25);
+      : Math.round((ia1 + ia2 + ia3) * 0.25 + assignmentMarks * 0.25),
+    0,
+    100
+  );
 
-  const totalAssign = record.assignments.length;
-  const submittedCount = record.assignments.filter(
+  const assignments = Array.isArray(record.assignments) ? record.assignments : [];
+  const totalAssign = assignments.length;
+  const submittedCount = assignments.filter(
     (a) => a.status === 'Submitted' || a.status === 'Late'
   ).length;
   const assignmentCompletionPct =
     totalAssign > 0 ? Math.round((submittedCount / totalAssign) * 100) : 100;
 
-  const classParticipation = clamp(Math.round(record.classParticipation), 0, 100);
+  const classParticipation = clamp(Math.round(safeNumber(record.classParticipation, 70)), 0, 100);
   const engagementScore = clamp(
     Math.round(
       classParticipation * 0.45 +
@@ -240,6 +260,7 @@ export function computeSubjectRecordMetrics(
     assignmentMarks,
     practicalMarks,
     internalAvg,
+    assignments,
     classParticipation,
     assignmentCompletionPct,
     engagementScore,
@@ -256,7 +277,25 @@ export function recalculateStudentFromSubjectRecords(
 ): Student {
   const normalizedRecords = updatedRecords.map(computeSubjectRecordMetrics);
   if (normalizedRecords.length === 0) {
-    return student;
+    return {
+      ...student,
+      subjectRecords: [],
+      subjectMarks: [],
+      assignmentsCompleted: 0,
+      assignmentsTotal: 0,
+      missingAssignments: 0,
+      creditsEnrolled: 0,
+      riskDrivers: [
+        {
+          id: `drv-empty-${student.id}`,
+          label: 'No active subjects currently assigned in class',
+          impactPoints: 0,
+          category: 'engagement',
+          detail:
+            'Assign at least one subject to this class to evaluate subject-wise attendance and IA marks.',
+        },
+      ],
+    };
   }
 
   const count = normalizedRecords.length;
@@ -343,6 +382,8 @@ export function recalculateStudentFromSubjectRecords(
     nextRiskScore,
   ];
 
+  const creditsEnrolled = normalizedRecords.reduce((sum, r) => sum + r.credits, 0);
+
   return {
     ...student,
     attendanceRate: avgAttendance,
@@ -352,6 +393,7 @@ export function recalculateStudentFromSubjectRecords(
     assignmentsCompleted,
     assignmentsTotal,
     missingAssignments,
+    creditsEnrolled,
     gpa: cgpa,
     riskScore: nextRiskScore,
     weeklyRiskHistory: nextHistory,
@@ -828,4 +870,333 @@ export function formatStudentCsv(
   });
 
   return [header, ...rows].join('\n');
+}
+
+/**
+ * Safely updates a subject or reassigns it from one class to another:
+ * - Updates the subject item's classId and metadata
+ * - Archives existing records from old-class students into historicalSubjectRecords
+ * - Removes active subject mapping from old-class students and recalculates their risk
+ * - Creates baseline records (or restores historical ones) for new-class students and recalculates their risk
+ */
+export function reassignSubjectAcrossClasses(params: {
+  subjectId: string;
+  updatedSubject: Omit<SubjectItem, 'id'>;
+  subjects: SubjectItem[];
+  students: Student[];
+  classes: AcademicClass[];
+  archivedAt?: string;
+}): {
+  subjects: SubjectItem[];
+  students: Student[];
+  movedBetweenClasses: boolean;
+  archivedCount: number;
+  enrolledCount: number;
+} {
+  const prevSubject = params.subjects.find((s) => s.id === params.subjectId);
+  if (!prevSubject) {
+    return {
+      subjects: params.subjects,
+      students: params.students,
+      movedBetweenClasses: false,
+      archivedCount: 0,
+      enrolledCount: 0,
+    };
+  }
+
+  const nextSubject: SubjectItem = {
+    ...params.updatedSubject,
+    id: params.subjectId,
+  };
+  const nextSubjects = params.subjects.map((s) =>
+    s.id === params.subjectId ? nextSubject : s
+  );
+
+  const movedBetweenClasses = prevSubject.classId !== nextSubject.classId;
+  const oldClass = params.classes.find((c) => c.id === prevSubject.classId);
+  const archivedDate = params.archivedAt ?? '13-11-2026';
+
+  let archivedCount = 0;
+  let enrolledCount = 0;
+
+  const nextStudents = params.students.map((stu) => {
+    const existingRecord = stu.subjectRecords.find(
+      (rec) => rec.subjectId === params.subjectId
+    );
+
+    if (!movedBetweenClasses) {
+      if (stu.classId !== nextSubject.classId && !existingRecord) {
+        return stu;
+      }
+      const nextRecords = stu.subjectRecords.map((rec) =>
+        rec.subjectId === params.subjectId
+          ? {
+              ...rec,
+              subjectCode: nextSubject.code,
+              subjectName: nextSubject.name,
+              subjectType: nextSubject.type,
+              credits: nextSubject.credits,
+            }
+          : rec
+      );
+      return recalculateStudentFromSubjectRecords(stu, nextRecords);
+    }
+
+    // Case 1: Student belongs to old class (or still holds the moved subject outside target class)
+    if (stu.classId !== nextSubject.classId) {
+      if (!existingRecord) return stu;
+      archivedCount += 1;
+      const archivedEntry: HistoricalSubjectRecord = {
+        ...existingRecord,
+        archivedFromClassId: prevSubject.classId,
+        archivedFromClassName: oldClass?.className ?? prevSubject.classId,
+        archivedAt: archivedDate,
+      };
+      const prevHistory = Array.isArray(stu.historicalSubjectRecords)
+        ? stu.historicalSubjectRecords
+        : [];
+      const filteredHistory = prevHistory.filter(
+        (h) =>
+          !(
+            h.subjectId === archivedEntry.subjectId &&
+            h.archivedFromClassId === archivedEntry.archivedFromClassId
+          )
+      );
+      const remainingRecords = stu.subjectRecords.filter(
+        (rec) => rec.subjectId !== params.subjectId
+      );
+      const recalculated = recalculateStudentFromSubjectRecords(stu, remainingRecords);
+      return {
+        ...recalculated,
+        historicalSubjectRecords: [archivedEntry, ...filteredHistory],
+      };
+    }
+
+    // Case 2: Student belongs to the target class (Class B)
+    if (existingRecord) {
+      const updatedRecords = stu.subjectRecords.map((rec) =>
+        rec.subjectId === params.subjectId
+          ? {
+              ...rec,
+              subjectCode: nextSubject.code,
+              subjectName: nextSubject.name,
+              subjectType: nextSubject.type,
+              credits: nextSubject.credits,
+            }
+          : rec
+      );
+      return recalculateStudentFromSubjectRecords(stu, updatedRecords);
+    }
+
+    enrolledCount += 1;
+    const prevHistory = Array.isArray(stu.historicalSubjectRecords)
+      ? stu.historicalSubjectRecords
+      : [];
+    const restorable = prevHistory.find(
+      (h) =>
+        h.subjectId === params.subjectId &&
+        h.archivedFromClassId === nextSubject.classId
+    );
+    const restoredOrBaseline: StudentSubjectRecord = restorable
+      ? {
+          subjectId: nextSubject.id,
+          subjectCode: nextSubject.code,
+          subjectName: nextSubject.name,
+          subjectType: nextSubject.type,
+          credits: nextSubject.credits,
+          totalWorkingDays: restorable.totalWorkingDays,
+          daysPresent: restorable.daysPresent,
+          daysAbsent: restorable.daysAbsent,
+          attendancePct: restorable.attendancePct,
+          ia1: restorable.ia1,
+          ia2: restorable.ia2,
+          ia3: restorable.ia3,
+          assignmentMarks: restorable.assignmentMarks,
+          practicalMarks: restorable.practicalMarks,
+          internalAvg: restorable.internalAvg,
+          assignments: restorable.assignments,
+          classParticipation: restorable.classParticipation,
+          assignmentCompletionPct: restorable.assignmentCompletionPct,
+          engagementScore: restorable.engagementScore,
+        }
+      : createBaselineSubjectRecords(
+          [nextSubject],
+          stu.subjectRecords.length > 0 ? stu.attendanceRate : 82,
+          stu.subjectRecords.length > 0 ? stu.internalMarksAvg : 75,
+          0
+        )[0];
+
+    const updatedStudent = recalculateStudentFromSubjectRecords(stu, [
+      ...stu.subjectRecords,
+      restoredOrBaseline,
+    ]);
+    return {
+      ...updatedStudent,
+      historicalSubjectRecords: restorable
+        ? prevHistory.filter((h) => h !== restorable)
+        : stu.historicalSubjectRecords,
+    };
+  });
+
+  return {
+    subjects: nextSubjects,
+    students: nextStudents,
+    movedBetweenClasses,
+    archivedCount,
+    enrolledCount,
+  };
+}
+
+/**
+ * Removes a subject from its class while archiving any existing student subject records
+ * into historicalSubjectRecords so academic audit trails are preserved.
+ */
+export function removeSubjectFromClass(params: {
+  subjectId: string;
+  subjects: SubjectItem[];
+  students: Student[];
+  classes: AcademicClass[];
+  archivedAt?: string;
+}): {
+  subjects: SubjectItem[];
+  students: Student[];
+  archivedCount: number;
+} {
+  const targetSubject = params.subjects.find((s) => s.id === params.subjectId);
+  if (!targetSubject) {
+    return { subjects: params.subjects, students: params.students, archivedCount: 0 };
+  }
+  const sourceClass = params.classes.find((c) => c.id === targetSubject.classId);
+  const archivedDate = params.archivedAt ?? '13-11-2026';
+  let archivedCount = 0;
+
+  const nextSubjects = params.subjects.filter((s) => s.id !== params.subjectId);
+  const nextStudents = params.students.map((stu) => {
+    const existing = stu.subjectRecords.find((r) => r.subjectId === params.subjectId);
+    if (!existing) return stu;
+    archivedCount += 1;
+    const archivedEntry: HistoricalSubjectRecord = {
+      ...existing,
+      archivedFromClassId: targetSubject.classId,
+      archivedFromClassName: sourceClass?.className ?? targetSubject.classId,
+      archivedAt: archivedDate,
+    };
+    const prevHistory = Array.isArray(stu.historicalSubjectRecords)
+      ? stu.historicalSubjectRecords
+      : [];
+    const remaining = stu.subjectRecords.filter((r) => r.subjectId !== params.subjectId);
+    const recalculated = recalculateStudentFromSubjectRecords(stu, remaining);
+    return {
+      ...recalculated,
+      historicalSubjectRecords: [archivedEntry, ...prevHistory],
+    };
+  });
+
+  return {
+    subjects: nextSubjects,
+    students: nextStudents,
+    archivedCount,
+  };
+}
+
+/**
+ * Dynamically computes subject-level bottleneck risk metrics from live student records
+ * across all departments so Admin analytics stay synchronized with data edits.
+ */
+export function computeSubjectBottlenecks(
+  students: Student[],
+  subjects: SubjectItem[],
+  thresholds: RiskThresholds = DEFAULT_THRESHOLDS
+): CourseBottleneck[] {
+  const map = new Map<
+    string,
+    {
+      courseCode: string;
+      courseName: string;
+      department: string;
+      enrolled: number;
+      atRiskCount: number;
+    }
+  >();
+
+  for (const stu of students) {
+    const { tier } = getStudentRiskSummary(stu, thresholds);
+    for (const rec of stu.subjectRecords) {
+      const existing = map.get(rec.subjectCode) ?? {
+        courseCode: rec.subjectCode,
+        courseName: rec.subjectName,
+        department: stu.department,
+        enrolled: 0,
+        atRiskCount: 0,
+      };
+      existing.enrolled += 1;
+      const subjectFlagged =
+        rec.attendancePct < thresholds.attendanceFloorPct ||
+        rec.internalAvg < 65 ||
+        tier === 'high';
+      if (subjectFlagged) {
+        existing.atRiskCount += 1;
+      }
+      map.set(rec.subjectCode, existing);
+    }
+  }
+
+  for (const sub of subjects) {
+    if (!map.has(sub.code)) {
+      map.set(sub.code, {
+        courseCode: sub.code,
+        courseName: sub.name,
+        department: 'Institutional Cohort',
+        enrolled: 0,
+        atRiskCount: 0,
+      });
+    }
+  }
+
+  return Array.from(map.values())
+    .filter((entry) => entry.enrolled > 0)
+    .map((entry) => ({
+      ...entry,
+      dfwRate: Number(((entry.atRiskCount / Math.max(1, entry.enrolled)) * 100).toFixed(1)),
+    }))
+    .sort((a, b) => b.dfwRate - a.dfwRate || b.atRiskCount - a.atRiskCount)
+    .slice(0, 5);
+}
+
+/**
+ * Validates a restored localStorage demo session against live faculty and student lists
+ * to eliminate stale session state across browser refreshes.
+ */
+export function validateAuthSession(
+  session: AuthSession | null | undefined,
+  facultyList: FacultyMember[],
+  students: Student[]
+): AuthSession | null {
+  if (!session || !session.role || !session.userId) return null;
+  if (session.role === 'admin') {
+    return session.email && session.email.includes('@') ? session : null;
+  }
+  if (session.role === 'faculty') {
+    const fac = facultyList.find((f) => f.id === session.userId);
+    if (!fac) return null;
+    return {
+      role: 'faculty',
+      userId: fac.id,
+      displayName: fac.name,
+      subtitle: `${fac.department} · ${fac.title}`,
+      email: fac.email,
+    };
+  }
+  if (session.role === 'student') {
+    const stu = students.find((s) => s.id === session.userId);
+    if (!stu) return null;
+    return {
+      role: 'student',
+      userId: stu.id,
+      displayName: stu.name,
+      subtitle: `${stu.studentCode} · ${stu.className}`,
+      email: stu.email,
+    };
+  }
+  return null;
 }

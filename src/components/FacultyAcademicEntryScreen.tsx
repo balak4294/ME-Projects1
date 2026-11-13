@@ -236,6 +236,17 @@ export function FacultyAcademicEntryScreen({
         </div>
       </section>
 
+      {!preview && (
+        <section className="edu-card p-10 text-center space-y-2">
+          <h2 className="text-base font-semibold text-[#0F172A]">
+            No active subjects assigned to {activeClass.className}
+          </h2>
+          <p className="text-xs text-[#434655]">
+            Assign or move at least one subject into this class under Step 3 (Subject Management) to enter attendance and IA marks.
+          </p>
+        </section>
+      )}
+
       {preview && (
         <form onSubmit={handleSave} className="space-y-6">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

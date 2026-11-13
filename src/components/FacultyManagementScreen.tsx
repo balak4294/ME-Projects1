@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from 'react';
+import { useEffect, useState, type FormEvent } from 'react';
 import { Plus, UserCheck, X } from 'lucide-react';
 import type {
   AcademicClass,
@@ -53,6 +53,18 @@ export function FacultyManagementScreen({
 
   const [assignStudentId, setAssignStudentId] = useState(students[0]?.id ?? '');
   const [assignFacultyId, setAssignFacultyId] = useState(facultyList[0]?.id ?? '');
+
+  useEffect(() => {
+    if (students.length > 0 && !students.some((s) => s.id === assignStudentId)) {
+      setAssignStudentId(students[0].id);
+    }
+  }, [students, assignStudentId]);
+
+  useEffect(() => {
+    if (facultyList.length > 0 && !facultyList.some((f) => f.id === assignFacultyId)) {
+      setAssignFacultyId(facultyList[0].id);
+    }
+  }, [facultyList, assignFacultyId]);
 
   const facultyPerf = computeFacultyPerformance(
     facultyList,
@@ -305,7 +317,7 @@ export function FacultyManagementScreen({
           aria-modal="true"
           aria-labelledby="add-faculty-title"
         >
-          <div className="w-full max-w-md rounded-2xl bg-white border border-[#E2E8F0] shadow-xl p-6">
+          <div className="w-full max-w-md rounded-2xl bg-white border border-[#E2E8F0] shadow-xl p-6 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between pb-3 border-b border-[#F1F5F9]">
               <h2 id="add-faculty-title" className="text-lg font-bold text-[#0F172A]">
                 Add Faculty Member

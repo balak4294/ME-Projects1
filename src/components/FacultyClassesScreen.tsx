@@ -11,7 +11,6 @@ import { computeClassMetrics, TN_DEPARTMENTS } from '../utils/riskEngine';
 
 interface FacultyClassesScreenProps {
   faculty: FacultyMember;
-  facultyList: FacultyMember[];
   classes: AcademicClass[];
   students: Student[];
   subjects: SubjectItem[];
@@ -24,7 +23,6 @@ interface FacultyClassesScreenProps {
 
 export function FacultyClassesScreen({
   faculty,
-  facultyList,
   classes,
   students,
   subjects,
@@ -44,7 +42,6 @@ export function FacultyClassesScreen({
   const [section, setSection] = useState('A');
   const [batch, setBatch] = useState('2025–2029');
   const [description, setDescription] = useState('');
-  const [assignedFacultyId, setAssignedFacultyId] = useState(faculty.id);
   const [formError, setFormError] = useState('');
 
   const openCreateModal = () => {
@@ -56,7 +53,6 @@ export function FacultyClassesScreen({
     setSection('A');
     setBatch('2025–2029');
     setDescription('');
-    setAssignedFacultyId(faculty.id);
     setFormError('');
     setIsModalOpen(true);
   };
@@ -70,7 +66,6 @@ export function FacultyClassesScreen({
     setSection(cls.section);
     setBatch(cls.batch);
     setDescription(cls.description);
-    setAssignedFacultyId(cls.assignedFacultyId);
     setFormError('');
     setIsModalOpen(true);
   };
@@ -81,8 +76,10 @@ export function FacultyClassesScreen({
       setFormError('Enter a valid class name (e.g., CSE – II Year – Section A).');
       return;
     }
-    const targetFaculty =
-      facultyList.find((f) => f.id === assignedFacultyId) ?? faculty;
+
+    const existingClass = editingClassId
+      ? classes.find((c) => c.id === editingClassId)
+      : null;
 
     const payload: Omit<AcademicClass, 'id'> = {
       className: className.trim(),
@@ -94,8 +91,8 @@ export function FacultyClassesScreen({
       description:
         description.trim() ||
         `${department} Semester ${semester} Section ${section.trim() || 'A'}`,
-      assignedFacultyId: targetFaculty.id,
-      assignedFacultyName: targetFaculty.name,
+      assignedFacultyId: existingClass?.assignedFacultyId ?? faculty.id,
+      assignedFacultyName: existingClass?.assignedFacultyName ?? faculty.name,
     };
 
     if (editingClassId) {
@@ -356,21 +353,16 @@ export function FacultyClassesScreen({
               </div>
 
               <div>
-                <label htmlFor="cls-fac" className="block text-xs font-semibold text-[#0F172A] mb-1">
-                  Assigned Faculty
-                </label>
-                <select
-                  id="cls-fac"
-                  value={assignedFacultyId}
-                  onChange={(e) => setAssignedFacultyId(e.target.value)}
-                  className="edu-input w-full px-3 text-sm"
-                >
-                  {facultyList.map((f) => (
-                    <option key={f.id} value={f.id}>
-                      {f.name} ({f.department})
-                    </option>
-                  ))}
-                </select>
+                <span className="block text-xs font-semibold text-[#0F172A] mb-1">
+                  Assigned Faculty Owner
+                </span>
+                <div className="rounded-lg border border-[#E2E8F0] bg-[#F8FAFC] px-3 py-2 text-xs text-[#0F172A]">
+                  <span className="font-semibold">{faculty.name}</span>{' '}
+                  <span className="text-[#434655]">({faculty.department})</span>
+                </div>
+                <p className="mt-1 text-[11px] text-[#64748B]">
+                  Faculty classes are locked to your account. Institutional Admins can reassign classes across faculty if needed.
+                </p>
               </div>
 
               <div>

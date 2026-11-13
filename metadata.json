@@ -1,5 +1,5 @@
 {
-  "name": "EduPredict AI",
+  "name": "EduPulse AI",
   "description": "Predictive student retention analytics, early-warning risk detection, and proactive intervention management for academic advisors.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]

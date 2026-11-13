@@ -108,6 +108,12 @@ export interface StudentSubjectRecord {
   engagementScore: number; // 0-100
 }
 
+export interface HistoricalSubjectRecord extends StudentSubjectRecord {
+  archivedFromClassId: string;
+  archivedFromClassName: string;
+  archivedAt: string;
+}
+
 export interface RiskDriver {
   id: string;
   label: string;
@@ -174,6 +180,7 @@ export interface Student {
   riskDrivers: RiskDriver[];
   subjectMarks: SubjectMark[];
   subjectRecords: StudentSubjectRecord[];
+  historicalSubjectRecords?: HistoricalSubjectRecord[];
   improvementActivities: ImprovementActivity[];
   recommendedPathway: {
     title: string;
